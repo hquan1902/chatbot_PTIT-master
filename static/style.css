@@ -1,0 +1,141 @@
+/* body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    margin: 0;
+    background: #f5f7fa;
+}
+.container {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+}
+.sidebar {
+    width: 25%;
+    background: #2b2d42;
+    color: white;
+    padding: 20px;
+    overflow-y: auto;
+}
+.chatbox {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: white;
+    padding: 20px;
+}
+#messages {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+.user-msg, .bot-msg {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 8px;
+    max-width: 80%;
+}
+.user-msg {
+    background: #edf2f4;
+    align-self: flex-end;
+}
+.bot-msg {
+    background: #d90429;
+    color: white;
+    align-self: flex-start;
+}
+.input-box {
+    display: flex;
+}
+.input-box input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+.input-box button {
+    background: #ef233c;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.chat-entry {
+    background: rgba(255,255,255,0.1);
+    padding: 8px;
+    border-radius: 5px;
+    margin-bottom: 8px;
+} */
+
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 25%;
+  background: #212529;
+  color: #fff;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  margin-top: 0;
+}
+
+.history p {
+  font-size: 14px;
+  padding: 5px;
+}
+
+.history .user { color: #0dcaf0; }
+.history .bot { color: #ffc107; }
+
+.chat {
+  width: 75%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+#chat-box {
+  flex: 1;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.input-area {
+  display: flex;
+  gap: 10px;
+}
+
+#user-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+button {
+  padding: 10px 15px;
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0b5ed7;
+}

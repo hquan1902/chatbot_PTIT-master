@@ -1,0 +1,154 @@
+<!-- <!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbox PTIT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <div class="sidebar">
+        <h2>Lịch sử chat</h2>
+        <div class="history">
+            {% for chat in history %}
+                <div class="chat-entry">
+                    <p><strong>Bạn:</strong> {{ chat.user }}</p>
+                    <p><strong>Bot:</strong> {{ chat.bot }}</p>
+                </div>
+                <hr>
+            {% endfor %}
+        </div>
+        <h3>Tải tài liệu mới</h3>
+        <form id="upload-form">
+            <input type="file" id="file" name="file" accept=".txt,.docx" required>
+            <button type="submit">Tải lên</button>
+        </form>
+        <p id="upload-status"></p>
+    </div>
+
+    <div class="chatbox">
+        <h1>Chat với Chatbot PTIT 🤖</h1>
+        <div id="messages"></div>
+        <div class="input-box">
+            <input type="text" id="user-input" placeholder="Nhập tin nhắn...">
+            <button id="send-btn">Gửi</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const sendBtn = document.getElementById('send-btn');
+const userInput = document.getElementById('user-input');
+const messages = document.getElementById('messages');
+
+// Gửi tin nhắn
+sendBtn.addEventListener('click', async () => {
+    const message = userInput.value.trim();
+    if (!message) return;
+
+    messages.innerHTML += `<div class="user-msg"><b>Bạn:</b> ${message}</div>`;
+    userInput.value = "";
+
+    const response = await fetch('/send_message', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message})
+    });
+    const data = await response.json();
+
+    if (data.reply) {
+        messages.innerHTML += `<div class="bot-msg"><b>Bot:</b> ${data.reply}</div>`;
+    } else {
+        messages.innerHTML += `<div class="bot-msg error">Lỗi: ${data.error}</div>`;
+    }
+
+    messages.scrollTop = messages.scrollHeight;
+});
+
+// Upload file
+document.getElementById('upload-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('file', document.getElementById('file').files[0]);
+
+    const res = await fetch('/upload_doc', {
+        method: 'POST',
+        body: formData
+    });
+    const data = await res.json();
+
+    const status = document.getElementById('upload-status');
+    status.innerText = data.success || data.error;
+});
+</script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChatBox PTIT</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+  <aside class="sidebar">
+    <h2>Lịch sử trò chuyện</h2>
+    <div class="history">
+      {% for msg in history %}
+        <p class="{{ msg.role }}">{{ msg.role }}: {{ msg.text }}</p>
+      {% endfor %}
+    </div>
+
+    <form id="upload-form">
+      <input type="file" id="file" name="file" required>
+      <button type="submit">Tải tài liệu</button>
+    </form>
+  </aside>
+
+  <main class="chat">
+    <div id="chat-box"></div>
+    <div class="input-area">
+      <input type="text" id="user-input" placeholder="Nhập tin nhắn...">
+      <button id="send-btn">Gửi</button>
+    </div>
+  </main>
+</div>
+
+<script>
+async function sendMessage() {
+  const input = document.getElementById('user-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  const res = await fetch('/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: msg })
+  });
+  const data = await res.json();
+
+  const box = document.getElementById('chat-box');
+  box.innerHTML += `<p class='user'><b>Bạn:</b> ${msg}</p>`;
+  box.innerHTML += `<p class='bot'><b>Bot:</b> ${data.reply}</p>`;
+  input.value = "";
+  box.scrollTop = box.scrollHeight;
+}
+
+document.getElementById('send-btn').onclick = sendMessage;
+document.getElementById('user-input').addEventListener('keypress', e => {
+  if (e.key === 'Enter') sendMessage();
+});
+
+document.getElementById('upload-form').onsubmit = async e => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const res = await fetch('/upload', { method: 'POST', body: formData });
+  const data = await res.json();
+  alert(data.success ? `Đã tải lên ${data.filename}` : data.error);
+};
+</script>
+</body>
+</html>
