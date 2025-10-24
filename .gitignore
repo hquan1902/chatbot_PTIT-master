@@ -1,0 +1,6 @@
+.env
+__pycache__/
+knowledge_base_ptit/
+*.sqlite3
+*.bin
+*.pyc
