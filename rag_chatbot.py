@@ -9,6 +9,7 @@ load_dotenv()
 
 EMBEDDING_MODEL = "text-embedding-3-small"
 CHROMA_DB_PATH = "./knowledge_base_ptit"
+os.makedirs(CHROMA_DB_PATH, exist_ok=True)
 
 
 class RAGChatbot:

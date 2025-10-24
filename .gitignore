@@ -1,6 +1,7 @@
 .env
 __pycache__/
 knowledge_base_ptit/
+chat_history.json
 *.sqlite3
 *.bin
 *.pyc
