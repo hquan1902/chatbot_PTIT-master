@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <title>Admin - Quản lý tri thức</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: flex-start; padding-top: 50px; min-height: 100vh; margin: 0; }
+        .admin-panel { display: flex; gap: 30px; }
+        .card { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 400px; }
+        h1, h2 { color: #333; text-align: center; }
+        h1 { margin-bottom: 20px; }
+        h2 { margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; font-size: 1.2em; }
+        input[type="password"], input[type="file"] { width: 95%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; }
+        button { width: 100%; padding: 12px; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        .btn-primary { background-color: #007bff; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-danger { background-color: #dc3545; }
+        .btn-danger:hover { background-color: #c82333; }
+        #message { margin-top: 15px; font-weight: bold; text-align: center; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        ul { list-style-type: none; padding: 0; max-height: 200px; overflow-y: auto; }
+        li { background-color: #f8f9fa; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 5px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-panel">
+    <div class="card">
+        <h1>Tải tài liệu lên</h1>
+        <form id="upload-form">
+            <input type="password" id="upload-password" name="password" placeholder="Nhập mật khẩu Admin" required>
+            <input type="file" id="file" name="file" required>
+            <button type="submit" class="btn-primary">Tải lên & Cập nhật</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <div class="card">
+        <h2>📚 Tri thức hiện có</h2>
+        <div id="knowledge-list">
+            {% if knowledge_files %}
+                <ul>
+                    {% for file in knowledge_files %}
+                        <li>{{ file }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Chưa có file tri thức nào.</p>
+            {% endif %}
+        </div>
+        <hr>
+        <h2>⚠️ Thao tác nguy hiểm</h2>
+        <button id="reset-btn" class="btn-danger">Reset toàn bộ tri thức</button>
+    </div>
+</div>
+
+<script>
+// --- Script cho Form Upload ---
+document.getElementById('upload-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const messageDiv = document.getElementById('message');
+    messageDiv.textContent = 'Đang xử lý, vui lòng chờ...';
+    messageDiv.className = '';
+
+    const formData = new FormData(e.target);
+    
+    try {
+        const res = await fetch('/upload', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            messageDiv.textContent = `Thành công: ${data.filename}. Tải lại trang để cập nhật danh sách.`;
+            messageDiv.className = 'success';
+        } else {
+            messageDiv.textContent = `Lỗi: ${data.error || 'Có lỗi xảy ra'}`;
+            messageDiv.className = 'error';
+        }
+    } catch (error) {
+        messageDiv.textContent = 'Lỗi mạng hoặc máy chủ không phản hồi.';
+        messageDiv.className = 'error';
+    }
+    
+    e.target.reset();
+};
+
+// --- Script cho Nút Reset ---
+document.getElementById('reset-btn').onclick = async () => {
+    const messageDiv = document.getElementById('message');
+
+    // Cảnh báo người dùng
+    if (!confirm('Bạn có chắc chắn muốn XÓA TOÀN BỘ cơ sở tri thức không? Hành động này không thể hoàn tác!')) {
+        return;
+    }
+
+    // Yêu cầu mật khẩu
+    const password = prompt("Vui lòng nhập lại mật khẩu Admin để xác nhận:");
+    if (!password) {
+        messageDiv.textContent = 'Hủy bỏ thao tác reset.';
+        messageDiv.className = 'error';
+        return;
+    }
+
+    messageDiv.textContent = 'Đang tiến hành reset...';
+    messageDiv.className = '';
+    
+    const formData = new FormData();
+    formData.append('password', password);
+
+    try {
+        const res = await fetch('/reset-knowledge', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            messageDiv.textContent = data.message + ' Tải lại trang để xem kết quả.';
+            messageDiv.className = 'success';
+        } else {
+            messageDiv.textContent = `Lỗi: ${data.error || 'Reset thất bại'}`;
+            messageDiv.className = 'error';
+        }
+    } catch (error) {
+        messageDiv.textContent = 'Lỗi mạng hoặc máy chủ không phản hồi.';
+        messageDiv.className = 'error';
+    }
+};
+</script>
+
+</body>
+</html>

@@ -1,67 +1,118 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <title>ChatBox PTIT</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8" />
+    <title>ChatBox PTIT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 <div class="container">
-  <aside class="sidebar">
-    <h2>Lịch sử trò chuyện</h2>
-    <div class="history">
-      {% for msg in history %}
-        <p class="{{ msg.role }}">{{ msg.role }}: {{ msg.text }}</p>
-      {% endfor %}
-    </div>
+    <aside class="sidebar">
+        <h2>Lịch sử trò chuyện</h2>
+        <div class="history">
+            {% for msg in history %}
+                <p class="{{ msg.role }}"><b>{{ msg.role }}:</b> {{ msg.text }}</p>
+            {% endfor %}
+        </div>
+        <div class="admin-link-container">
+            <a href="#" id="admin-link-btn" class="admin-link">Quản lý tri thức</a>
+        </div>
+    </aside>
 
-    <form id="upload-form">
-      <input type="file" id="file" name="file" required>
-      <button type="submit">Tải tài liệu</button>
-    </form>
-  </aside>
-
-  <main class="chat">
-    <div id="chat-box"></div>
-    <div class="input-area">
-      <input type="text" id="user-input" placeholder="Nhập tin nhắn...">
-      <button id="send-btn">Gửi</button>
-    </div>
-  </main>
+    <main class="chat">
+        <div id="chat-box"></div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Nhập tin nhắn...">
+            <button id="send-btn">Gửi</button>
+        </div>
+    </main>
 </div>
 
 <script>
-async function sendMessage() {
-  const input = document.getElementById('user-input');
-  const msg = input.value.trim();
-  if (!msg) return;
+    // Đợi toàn bộ trang web tải xong rồi mới chạy script
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const adminLinkBtn = document.getElementById('admin-link-btn');
 
-  const res = await fetch('/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: msg })
-  });
-  const data = await res.json();
+        if (!chatBox || !userInput || !sendBtn || !adminLinkBtn) {
+            console.error("Lỗi nghiêm trọng: Một hoặc nhiều ID của thẻ HTML không được tìm thấy. Vui lòng kiểm tra lại file index.html.");
+            return; 
+        }
 
-  const box = document.getElementById('chat-box');
-  box.innerHTML += `<p class='user'><b>Bạn:</b> ${msg}</p>`;
-  box.innerHTML += `<p class='bot'><b>Bot:</b> ${data.reply}</p>`;
-  input.value = "";
-  box.scrollTop = box.scrollHeight;
-}
+        // --- HÀM GỬI TIN NHẮN ---
+        async function sendMessage() {
+            const msg = userInput.value.trim();
+            if (!msg) return;
 
-document.getElementById('send-btn').onclick = sendMessage;
-document.getElementById('user-input').addEventListener('keypress', e => {
-  if (e.key === 'Enter') sendMessage();
-});
+            chatBox.innerHTML += `<p class='user'><b>Bạn:</b> ${msg}</p>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
 
-document.getElementById('upload-form').onsubmit = async e => {
-  e.preventDefault();
-  const formData = new FormData(e.target);
-  const res = await fetch('/upload', { method: 'POST', body: formData });
-  const data = await res.json();
-  alert(data.success ? `Đã tải lên ${data.filename}` : data.error);
-};
+            userInput.value = "";
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+
+            chatBox.innerHTML += `<p class='bot bot-thinking' id='thinking-msg'><b>Bot:</b> Đang suy nghĩ...</p>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const res = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg })
+                });
+                const data = await res.json();
+                const thinkingMsg = document.getElementById('thinking-msg');
+                if (thinkingMsg) {
+                    thinkingMsg.innerHTML = `<b>Bot:</b> ${data.reply}`;
+                    thinkingMsg.removeAttribute('id');
+                    thinkingMsg.classList.remove('bot-thinking');
+                }
+            } catch (error) {
+                console.error("Lỗi khi gửi tin nhắn:", error);
+                const thinkingMsg = document.getElementById('thinking-msg');
+                if (thinkingMsg) {
+                    thinkingMsg.innerHTML = `<b>Bot:</b> Xin lỗi, đã có lỗi xảy ra.`;
+                }
+            } finally {
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        sendBtn.onclick = sendMessage;
+        userInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter' && !userInput.disabled) {
+                sendMessage();
+            }
+        });
+
+        // --- SCRIPT ĐĂNG NHẬP ADMIN ---
+        adminLinkBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const password = prompt("Vui lòng nhập mật khẩu Admin:");
+            if (!password) return;
+            try {
+                const response = await fetch('/check-admin-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: password })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.open('/admin', '_blank');
+                } else {
+                    alert('Mật khẩu không đúng!');
+                }
+            } catch (error) {
+                alert('Đã có lỗi xảy ra khi kết nối đến máy chủ.');
+                console.error('Lỗi xác thực:', error);
+            }
+        });
+    });
 </script>
 </body>
 </html>
